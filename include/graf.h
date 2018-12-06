@@ -9,7 +9,13 @@ using namespace std;
 struct Vertice
 {
     int id;
+    int idPasangan;
+    long key;
     tuple<int, int> koordinat;
+    bool operator < (const Vertice& V) const
+    {
+        return (key < V.key);
+    }
 };
 
 bool isSameVertice(Vertice V1, Vertice V2);
@@ -17,14 +23,16 @@ bool isSameVertice(Vertice V1, Vertice V2);
 
 //Selektor
 #define Id(V) (V).id
+#define IdPas(V) (V).idPasangan
+#define Key(V) (V).key
 #define XVertice(V) get<0>((V).koordinat)
 #define YVertice(V) get<1>((V).koordinat)
 
 struct Edge
 {
     //Edge tak berarah
-    Vertice V1;
-    Vertice V2;
+    int V1; //id dari Vertice 1
+    int V2; //id dari Vertice 2
     long int weight;
 
     bool operator < (const Edge& E) const
@@ -57,17 +65,23 @@ public:
     //Mereturn Vector V
     vector<Edge> getVecEdge();
     //Mereturn Vector E
+    Vertice getVIdx(int idx);
+    //Mereturn Vertice dengan index ke idx
+    Edge getMinimumEdge();
+    //Mereturn Edge dengan weight maksimum dari graph
+    //Untuk kepentingan Minimum Spanning Tree
+    //Prekondisi : Vector Edge tidak kosong dan sudah terurut
 
     void tambahVertice(Vertice Ve);
     //Menambahkan Vertice V kedalam Graf
-    void tambahVertice(int id, int X, int Y);
+    void tambahVertice(int id,int key, int X, int Y);
     //Menambah Vertice dengan komponen {id, {X,Y}} ke Graf
+    void tambahVertice(int id, int idPasangan, int key, int X, int Y);
+    //Menambah Vertice dengan komponen {id,idPasangan, key {X,Y}} ke Graf
     void hapusVertice(Vertice Ve);
     //Menghapus Vertice V dari Graf
     void tambahEdge(Vertice V1, Vertice V2, int W);
     //Menambah edge baru antara Vertice awal dan akhir dan weight dari edge = W
-    void tambahEdge(int id, int X, int Y, Vertice V2, int W);
-    //Menabah edge baru antara Vertice berkomponen {id, {X,Y}} dengan V2 dan weight W ke graf
     void tambahEdge(int id1,int X1, int Y1, int id2, int X2, int Y2, int W);
     //Menabah edge baru antara Vertice berkomponen {id1, {X1,Y1}} dengan vertice {id2, {X2,Y2}}
     //dan weight W ke graf
@@ -78,12 +92,13 @@ public:
     //Menghapus semua Vertice didalam Graf
     void clearEdge();
     //Menghapus semua Edge didalam Graf
-
-    void sortEdge();
-    //Mengsort semua Edge didalam Graf berdasarkan bobotnya
     
+    bool isVecEdgeEmpty();
+    //Mengecek apakah Vector Edge kosong
     int adaVertice(Vertice Ve);
-    //Mengecek apakah ada Vertice V di dalam Graf dan mereturn indexnya jika ada
+    //Mengecek apakah ada Vertice Ve di dalam Graf dan mereturn indexnya jika ada
+    int adaVertice(int Id);
+    //Mengecek apakah ada Vertice dengan id Id di dalam Graf dan mereturn indexnya jika ada
     int adaEdge(Edge Ed);
     //Mengecek apakah ada Edge E di dalam Graf dan mereturn indexnya jika ada
     int adaEdgeAntara(Vertice V1, Vertice V2);
@@ -93,9 +108,9 @@ public:
     //Mengeprint semua vertice pada Graf ke layar
     void printEdge();
     //Mengeprint semua edge pada Graf ke layar
-};
 
-Graf MST(Graf G);
-//Membuat minimum spanning tree dari graf G
+    Graf MST();
+    //Membuat MST dari Graf
+};
 
 #endif

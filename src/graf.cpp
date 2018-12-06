@@ -5,12 +5,12 @@ using namespace std;
 
 bool isSameVertice(Vertice V1, Vertice V2)
 {
-    return Id(V1) == Id(V2) && XVertice(V1) == XVertice(V2) && YVertice(V1) == YVertice(V2);
+    return Id(V1) == Id(V2);
 }
 
 bool isSameEdge(Edge E1, Edge E2)
 {
-    return (isSameVertice(V1(E1), V1(E2)) && isSameVertice(V2(E1), V2(E2))) || (isSameVertice(V1(E1), V2(E2)) && isSameVertice(V2(E1), V1(E2)));
+    return (V1(E1) == V1(E2) && V2(E1) == V2(E2)) || (V1(E1) == V2(E2) && V2(E1) == V1(E2));
 }
 
 Graf::Graf()
@@ -34,7 +34,19 @@ vector<Edge> Graf::getVecEdge()
     return E;
 }
 //Mereturn Vector E
-
+Vertice Graf::getVIdx(int idx)
+{
+    return V[idx];
+}
+//Mereturn Vertice dengan index ke idx
+Edge Graf::getMinimumEdge()
+{
+    return E[0];
+}
+//Mereturn Edge dengan weight maksimum dari graph
+//Untuk kepentingan Minimum Spanning Tree
+//Prekondisi : Vector Edge tidak kosong dan sudah terurut
+///////////////////////////////////////////////////////////
 void Graf::tambahVertice(Vertice Ve)
 {
     if (this->adaVertice(Ve) == -1)
@@ -43,12 +55,18 @@ void Graf::tambahVertice(Vertice Ve)
     }
 }
 //Menambahkan Vertice V kedalam Graf
-void Graf::tambahVertice(int id, int X, int Y)
+void Graf::tambahVertice(int id, int key, int X, int Y)
 {
-    Vertice VTemp = {id, {X,Y}};
+    Vertice VTemp = {id,-1, 999999, {X, Y}};
     this->tambahVertice(VTemp);
 }
-//Menambah Vertice dengan komponen {id, {X,Y}} ke Graf
+//Menambah Vertice dengan komponen {id,-1, key {X,Y}} ke Graf
+void Graf::tambahVertice(int id, int idPasangan, int key, int X, int Y)
+{
+    Vertice VTemp = {id,idPasangan, 999999, {X, Y}};
+    this->tambahVertice(VTemp);
+}
+//Menambah Vertice dengan komponen {id,idPasangan, key {X,Y}} ke Graf
 void Graf::hapusVertice(Vertice Ve)
 {
     int idxHapus = this->adaVertice(Ve);
@@ -71,23 +89,18 @@ void Graf::tambahEdge(Vertice V1, Vertice V2, int W)
     if (this->adaEdgeAntara(V1, V2) == -1)
     {
         Edge ETemp;
-        V1(ETemp) = V1;
-        V2(ETemp) = V2;
+        V1(ETemp) = Id(V1);
+        V2(ETemp) = Id(V2);
         Weight(ETemp) = W;
         E.push_back(ETemp);
     }
 }
-//Menambah edge baru antara Vertice awal dan akhir dan weight dari edge = W
-void Graf::tambahEdge(int id, int X, int Y, Vertice V2, int W)
-{
-    Vertice VTemp = {id, {X,Y}};
-    this->tambahEdge(VTemp,V2,W);
-}
 //Menabah edge baru antara Vertice berkomponen {id, {X,Y}} dengan V2 dan weight W ke graf
-void Graf::tambahEdge(int id1,int X1, int Y1, int id2, int X2, int Y2, int W)
+void Graf::tambahEdge(int id1, int X1, int Y1, int id2, int X2, int Y2, int W)
 {
-    Vertice VTemp = {id2, {X2,Y2}};
-    this->tambahEdge(id1, X1, Y1, VTemp,W);
+    Vertice VTemp1 = {id1,-1, 999999, {X1, Y1}};
+    Vertice VTemp2 = {id2,-1, 999999, {X2, Y2}};
+    this->tambahEdge(VTemp1, VTemp2, W);
 }
 //Menabah edge baru antara Vertice berkomponen {id1, {X1,Y1}} dengan vertice {id2, {X2,Y2}}
 //dan weight W ke graf
@@ -111,11 +124,12 @@ void Graf::clearEdge()
     E.clear();
 }
 //Menghapus semua Edge didalam Graf
-void Graf::sortEdge()
+
+bool Graf::isVecEdgeEmpty()
 {
-    sort(E.begin(),E.end());
+    return E.empty();
 }
-//Mengsort semua Edge didalam Graf berdasarkan bobotnya
+//Mengecek apakah Vector Edge kosong
 int Graf::adaVertice(Vertice Ve)
 {
     bool ketemu = false;
@@ -140,6 +154,12 @@ int Graf::adaVertice(Vertice Ve)
     return idx;
 }
 //Mengecek apakah ada Vertice V di dalam Graf dan mereturn indexnya jika ada
+int Graf::adaVertice(int Id)
+{
+    Vertice VTemp = {Id,-1, 0, {0, 0}};
+    return adaVertice(VTemp);
+}
+//Mengecek apakah ada Vertice dengan id Id di dalam Graf dan mereturn indexnya jika ada
 int Graf::adaEdge(Edge Ed)
 {
     bool ketemu = false;
@@ -166,7 +186,7 @@ int Graf::adaEdge(Edge Ed)
 //Mengecek apakah ada Edge E di dalam Graf dan mereturn indexnya jika ada
 int Graf::adaEdgeAntara(Vertice V1, Vertice V2)
 {
-    Edge ETemp = {V1, V2, 0};
+    Edge ETemp = {Id(V1), Id(V2), 0};
     return this->adaEdge(ETemp);
 }
 //Mengecek apakah ada Edge diantara V1 dan V2 dan mereturn indexnya jika ada
@@ -187,14 +207,64 @@ void Graf::printEdge()
     vector<Edge>::iterator iter = E.begin();
     while (iter != E.end())
     {
-        cout << "Edge antara " << Id(V1(*iter)) << " dengan " << Id(V2(*iter)) << endl;
+        cout << "Edge antara " << V1(*iter) << " dengan " << V2(*iter) << endl;
         cout << "    Weight : " << Weight(*iter) << endl;
         iter++;
     }
 }
 //Mengeprint semua edge pada Graf ke layar
 
-Graf MST(Graf G)
+Graf Graf::MST()
 {
+    //Algoritma Prim
+    //Set Vertice 0 sebagai awal
+    Key(*V.begin()) = 0;
+    IdPas(*V.begin()) = -1;
+    Graf MST;
+    int targetJumlahVertices = V.size();
+    int currJumlahVertices = 0;
+    while (currJumlahVertices != targetJumlahVertices)
+    {
+        //Ambil Vertices dengan key paling kecil dan tidak ada di MST
+        sort(V.begin(),V.end());
+        Vertice MinVert = V[0];
+        if(IdPas(MinVert) != -1)
+        {
+            Vertice pasangan = MST.getVIdx(MST.adaVertice(IdPas(MinVert)));
+            MST.tambahEdge(pasangan,MinVert,Key(MinVert));
+        }else{
+            MST.tambahVertice(MinVert);
+        }
+        //Update key semua Vertices yang bertetanggaan dengan vertices tersebut
+        vector<Edge>::iterator iter = E.begin();
+        while (iter != E.end())
+        {
+            if (V1(*iter) == Id(MinVert))
+            {
+                //Update key V2
+                int idxV2 = this->adaVertice(V2(*iter));
+                if(Weight(*iter) < Key(V[idxV2]))
+                {
+                    Key(V[idxV2]) = Weight(*iter);
+                    IdPas(V[idxV2]) = Id(MinVert);
+                }
+            }
+            else if (V2(*iter) == Id(MinVert))
+            {
+                //Update key V1
+                int idxV1 = this->adaVertice(V1(*iter));
+                if(Weight(*iter) < Key(V[idxV1]))
+                {
+                    Key(V[idxV1]) = Weight(*iter);
+                    IdPas(V[idxV1]) = Id(MinVert);
+                }
+            }
+            iter++;
+        }
+        //Hapus Vertices tersebut dari Graf awal
+        this->hapusVertice(MinVert);
+        currJumlahVertices++;
+    }
+    return MST;
 }
-//Membuat minimum spanning tree dari graf G
+//Membuat MST dari Graf

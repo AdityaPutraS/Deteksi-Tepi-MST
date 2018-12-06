@@ -36,22 +36,21 @@ int main()
     }
     */
     Graf G;
-    Vertice t1 = {0, {1,2}};
-    Vertice t2 = {1, {2,3}};
-    Vertice t3 = {2, {4,1}};
-    G.tambahEdge(t1,t2,5);
+    int n;
+    cout << "Banyak Edge : ";
+    cin >> n;
+    for(int i = 0;i < n ;i++)
+    {
+        int id1,id2,w;
+        cout << "Input id1 id2 weight : ";
+        cin >> id1 >> id2 >> w;
+        G.tambahEdge(id1,0,0,id2,0,0,w);
+    }
     G.printVertice();
     G.printEdge();
     cout<<"============================="<<endl;
-    G.tambahEdge(t1,t3,10);
-    G.printVertice();
-    G.printEdge();
-    cout<<"============================="<<endl;
-    G.tambahEdge(t2,t3,7);
-    G.printVertice();
-    G.printEdge();
-    cout<<"============================="<<endl;
-    G.sortEdge();
-    G.printVertice();
-    G.printEdge();
+    cout<<"MST"<<endl;
+    Graf MSTGraf = G.MST();
+    MSTGraf.printVertice();
+    MSTGraf.printEdge();
 }
