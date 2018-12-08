@@ -23,7 +23,7 @@ class edgeMST
 {
   private:
     bool isCurses;
-    Mat gambar, hasilEdge, hasilMST;
+    Mat gambar, gambarLAB, hasilMST;
     Graf G;
     vector<Vertice> VTemp;
     int epsilon, thresoldDistance, akurasi;
@@ -41,9 +41,9 @@ class edgeMST
     void setGambar(Mat temp);
 
     void getMST();
+    Mat getEdge();
 
     void displayGambar();
-    void displayData();
 };
 
 #endif

@@ -1,5 +1,4 @@
 #include "../include/edgeMST.h"
-#include <curses.h>
 
 using namespace std;
 using namespace cv;
@@ -21,15 +20,7 @@ void edgeMST::on_trackbar(int, void *) {}
 void edgeMST::initWindow()
 {
     namedWindow("Asli");
-    namedWindow("Edge");
     namedWindow("MST");
-    namedWindow("Properties");
-}
-
-void edgeMST::initTrackbar()
-{
-    createTrackbar("Epsilon", "Properties", &epsilon, 100, on_trackbar);
-    createTrackbar("Thresold Distance", "Properties", &thresoldDistance, 500, on_trackbar);
 }
 
 double deltaColor(Vec3b C1, Vec3b C2)
@@ -46,22 +37,22 @@ double deltaColor(Vec3b C1, Vec3b C2)
 void edgeMST::setGambar(Mat temp)
 {
     temp.copyTo(gambar);
-    gambar.copyTo(hasilEdge);
+    gambar.copyTo(gambarLAB);
     gambar.copyTo(hasilMST);
     hasilMST.setTo(Scalar(0, 0, 0));
-    cvtColor(hasilEdge, hasilEdge, CV_RGB2Lab);
+    cvtColor(gambarLAB, gambarLAB, CV_RGB2Lab);
     int idx = 0;
-    for (int i = 1; i < hasilEdge.rows - 1; i += akurasi)
+    for (int i = 1; i < gambarLAB.rows - 1; i += akurasi)
     {
-        for (int j = 1; j < (hasilEdge.cols - 1); j += akurasi)
+        for (int j = 1; j < (gambarLAB.cols - 1); j += akurasi)
         {
-            Vec3b pixelTengah = hasilEdge.at<Vec3b>(i, j);
+            Vec3b pixelTengah = gambarLAB.at<Vec3b>(i, j);
             //Cek Horizontal
             bool sudahDimasukan = false;
             int x = j-1;
             while(!sudahDimasukan && (x <= j+1))
             {
-                Vec3b pixelTemp = hasilEdge.at<Vec3b>(i, x);
+                Vec3b pixelTemp = gambarLAB.at<Vec3b>(i, x);
                 double dist = deltaColor(pixelTengah, pixelTemp);
                 if (dist > epsilon)
                 {
@@ -78,7 +69,7 @@ void edgeMST::setGambar(Mat temp)
             int y = i-1;
             while(!sudahDimasukan && (y <= i+1))
             {
-                Vec3b pixelTemp = hasilEdge.at<Vec3b>(y, j);
+                Vec3b pixelTemp = gambarLAB.at<Vec3b>(y, j);
                 double dist = deltaColor(pixelTengah, pixelTemp);
                 if (dist > epsilon)
                 {
@@ -93,12 +84,7 @@ void edgeMST::setGambar(Mat temp)
             }
         }
     }
-    if (!isCurses)
-    {
-        cout << "Ketemu " << VTemp.size() << " Vertices" << endl;
-    }else{
-        mvprintw(5,0,"Ketemu %d Vertices",VTemp.size());
-    }
+    cout << "Ketemu " << VTemp.size() << " Vertices" << endl;
 }
 
 void edgeMST::getMST()
@@ -122,20 +108,10 @@ void edgeMST::getMST()
         }
     }
     int banyakEdge = G.getBanyakEdge();
-    if (!isCurses)
-    {
-        cout << "Banyak Edge sebelum MST : " << banyakEdge << endl;
-    }else{
-        mvprintw(6,0,"Banyak Edge sebelum MST : %d",banyakEdge);
-    }
+    cout << "Banyak Edge sebelum MST : " << banyakEdge << endl;
     G.MST();
     banyakEdge = G.getBanyakEdge();
-    if (!isCurses)
-    {
-        cout << "Banyak Edge setelah MST : " << banyakEdge << endl;
-    }else{
-        mvprintw(6,0,"Banyak Edge setelah MST : %d",banyakEdge);
-    }
+    cout << "Banyak Edge setelah MST : " << banyakEdge << endl;
     for (int i = 0; i < banyakEdge; i++)
     {
         Edge ETemp = G.getEdge(i);
@@ -147,19 +123,13 @@ void edgeMST::getMST()
     }
 }
 
+Mat edgeMST::getEdge()
+{
+    return hasilMST;
+}
+
 void edgeMST::displayGambar()
 {
     imshow("Asli", gambar);
-    imshow("Edge", hasilEdge);
     imshow("MST", hasilMST);
-}
-
-void edgeMST::displayData()
-{
-    clear();
-    mvprintw(1, 0, "===================================================");
-    mvprintw(2, 15, "Data Edge Detector dengan MST");
-    mvprintw(3, 0, "===================================================");
-
-    refresh();
 }
