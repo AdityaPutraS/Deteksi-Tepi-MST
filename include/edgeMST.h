@@ -5,6 +5,7 @@
 #include "opencv2/imgproc.hpp"
 #include "opencv2/highgui.hpp"
 #include "opencv2/opencv.hpp"
+#include "graf.h"
 #include <vector>
 #include <tuple>
 
@@ -20,22 +21,26 @@ using namespace cv;
 
 class edgeMST
 {
-private:
-    Mat gambar,hasilEdge;
-    vector<vector<tuple<int,int,unsigned char>>> graf;
-    int epsilon;
-public:
-    edgeMST();
+  private:
+    bool isCurses;
+    Mat gambar, hasilEdge, hasilMST;
+    Graf G;
+    vector<Vertice> VTemp;
+    int epsilon, thresoldDistance, akurasi;
+
+  public:
+    edgeMST(int eps, int thrD, bool isCurs, int akur);
     ~edgeMST();
     //Init
     void initWindow();
     void initTrackbar();
 
     static void on_trackbar(int, void *);
+
     //Setter
     void setGambar(Mat temp);
 
-    void getEdge();
+    void getMST();
 
     void displayGambar();
     void displayData();
